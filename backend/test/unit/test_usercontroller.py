@@ -11,7 +11,7 @@ class TestGetUserByEmail:
     @pytest.mark.parametrize('email, users, expected', [
         ("jane.doe@gmail.com", [{"email": "jane.doe@gmail.com", "firstName": "Jane", "lastName": "Doe"}], {"email": "jane.doe@gmail.com", "firstName": "Jane", "lastName": "Doe"}),
         ("jane.doe@gmail.com", [{"email": "jane.doe@gmail.com", "firstName": "Jane", "lastName": "Doe"}, {"email": "jane.doe@gmail.com", "firstName": "Shane", "lastName": "Shoe"}], {"email": "jane.doe@gmail.com", "firstName": "Jane", "lastName": "Doe"}),
-        ("jane.doe@gmail.com", None, None),
+        ("jane.doe@gmail.com", [None], None),
 
     ])
     def test_valid_email(self, email, users, expected):
