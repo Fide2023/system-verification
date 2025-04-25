@@ -3,9 +3,8 @@
 import pytest
 from pymongo.errors import WriteError
 from src.util.dao import DAO
-import mongomock
 from unittest import mock
-import os
+
 
 
 @pytest.mark.integration
