@@ -48,6 +48,7 @@ class TestDAO:
         yield dao
         # clean database collection after test for a proper teardown
         dao.collection.delete_many({})
+        dao.collection.drop()
     
     @pytest.mark.parametrize('body', [
         {"firstName": 123, "lastName": "Doe", "email": "jane.doe@gmail.com"},
