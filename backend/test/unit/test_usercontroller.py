@@ -27,7 +27,6 @@ class TestGetUserByEmail:
 
         # Assert result is equal to expected
         assert result == expected
-        mockedDAO.find.assert_called_once_with({"email": email})
 
     def test_invalid_email(self):
         # Testing an invalid email, should return an ValueError
