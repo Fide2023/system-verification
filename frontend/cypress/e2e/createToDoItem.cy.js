@@ -1,145 +1,119 @@
-describe('Create Task After Login', () => {
-  let uid;
-  let name;
-  let taskId;
-  let email;
-  const taskTitle = 'newtask';
-  const videoId = 'mNf6U1h3WUs';
+describe('create task after login', () => {
+  let uid; // user id
+  let email; // email of the user
+  let taskId; // id of task for deletion
 
   before(function () {
-    // Create test user from fixture
-    cy.fixture('user.json')
-      .then((user) => {
+    // setup everything for tests, create user and task
+    cy.fixture('user.json').then((user) => {
+      cy.request({
+        method: 'POST',
+        url: 'http://localhost:5000/users/create',
+        form: true,
+        body: user
+      }).then((response) => {
+        uid = response.body._id.$oid;
+        email = user.email;
+
         cy.request({
           method: 'POST',
-          url: 'http://localhost:5000/users/create',
+          url: 'http://localhost:5000/tasks/create',
           form: true,
-          body: user,
+          body: {
+            title: 'new task',
+            description: 'Test task description',
+            url: 'hello',
+            userid: uid,
+            todos: "watch this video"
+          },
           failOnStatusCode: false
-        }).then((response) => {
-          uid = response.body._id.$oid;
-          name = user.firstName + ' ' + user.lastName;
-          email = user.email;
-
-          // Create task once after user creation
-          cy.request({
-            method: 'POST',
-            url: 'http://localhost:5000/tasks/create',
-            form: true,
-            body: {
-              title: taskTitle,
-              description: 'Test task description',
-              url: videoId,
-              userid: uid
-            },
-            failOnStatusCode: false
-          }).then((taskResponse) => {
-            taskId = taskResponse.body_id;
-            console.log('Task created with ID:', taskId);
-          });
+        }).then((taskResponse) => {
+          taskId = taskResponse.body[0]._id.$oid;
+          console.log('Task created with ID:', taskId);
         });
       });
+    });
   });
 
   beforeEach(function () {
-    // Only login before each test
+    // login and enter view detail mode for the task
     cy.visit('http://localhost:3000');
     cy.contains('div', 'Email Address')
       .find('input[type=text]')
       .type(email);
     cy.get('form').submit();
-    cy.get('h1').should('contain.text', 'Your tasks, ' + name);
-  });
- 
 
+    cy.get('.container-element').first().within(() => {
+      cy.get('.title-overlay').should('contain', 'new task');
+      cy.get('a').click();
+    });
+  });
+
+  // should create a todo under the video
   it('should create a todo under the video', () => {
-    // Open task details
-    cy.get('.container-element').first().within(() => {
-      cy.get('.title-overlay').should('contain', taskTitle);
-      cy.get('a').click();
+    cy.get('form.inline-form').within(() => {
+      cy.get('input[type="text"]').type('Dont watch this video', { force: true });
+      cy.get('input[type="submit"]').click({ force: true });
     });
+    cy.get('.todo-list').should('contain', 'Dont watch this video');
+  });
 
-    // Add todo in popup
-    cy.get('.popup-inner').should('be.visible').within(() => {
-      cy.get('.todo-list').within(() => {
-        cy.get('.inline-form').within(() => {
-          cy.get('input[type="text"]')
-            .should('exist')
-            .type('Watch this video', { force: true });
-          cy.get('input[type="submit"]')
-            .scrollIntoView()
-            .click({ force: true });
-        });
-
-        // Verify todo was added
-        cy.get('.todo-item')
-          .should('be.visible')
-          .should('contain', 'Watch this video');
-      });
+  // add button should be disabled when input is empty
+  it('should disable the Add button when input is empty', () => {
+    cy.get('form.inline-form').within(() => {
+      cy.get('input[type="text"]').clear({ force: true });
+      cy.get('input[type="submit"]').should('be.disabled');
     });
   });
-  it('should toggle specific todo item', () => {
-    // Open task details
-    cy.get('.container-element').first().within(() => {
-      cy.get('a').click();
-    });
-  
-    // Ensure popup and todos are loaded
-    cy.get('.popup-inner').should('be.visible');
-    cy.get('.todo-item').should('exist');
-  
-    // Find the todo and check it
-    cy.contains('.todo-item', 'Watch this video').within(() => {
+
+  // should toogle and untoggle a todo
+  it('should toggle a todo', () => {
+    cy.contains('.todo-item', 'Dont watch this video').within(() => {
       cy.get('.checker')
         .should('have.class', 'unchecked')
-        .click()
-        .should('have.class', 'checked');
+        .click();
+
+      cy.get('.checker').should('have.class', 'checked');
+
+      cy.get('.checker')
+        .should('have.class', 'checked')
+        .click();
+
+      cy.get('.checker').should('have.class', 'unchecked');
     });
   });
-  it('should delete specific todo item', () => {
-  // Open task details
-  cy.get('.container-element').first().within(() => {
-    cy.get('a').click();
+
+  // should delete a todo
+  it('should delete a todo', () => {
+    cy.contains('.todo-item', 'Dont watch this video')
+      .should('exist')
+      .within(() => {
+        cy.get('.remover').click();
+      });
+
+    cy.contains('.todo-item', 'Dont watch this video').should('not.exist');
   });
 
-  // Ensure popup and todos are loaded
-  cy.get('.popup-inner').should('be.visible');
-  cy.get('.todo-item').should('exist');
+  after(function () {
+    // delete task
+    if (taskId) {
+      console.log("Deleting task by id: ", taskId);
+      cy.request({
+        method: 'DELETE',
+        url: `http://localhost:5000/tasks/byid/${taskId}`,
+        failOnStatusCode: false
+      });
+    }
 
-  // Store the initial count
-  cy.get('.todo-item').then($items => {
-    const initialCount = $items.length;
+    // delete user
+    if (uid) {
+      cy.request({
+        method: 'DELETE',
+        url: `http://localhost:5000/users/${uid}`
+      }).then((response) => {
+        cy.log(response.body);
+      });
+    }
 
-    // Delete the specific todo item
-    cy.contains('.todo-item', 'Watch this video').within(() => {
-      cy.get('.checker').should('have.class', 'checked'); // Confirm it's checked
-      cy.get('.remover').click(); // Delete
-    });
-
-    // Wait for DOM update and verify item count
-    cy.get('.todo-item').should('have.length.lessThan', initialCount);
-    cy.contains('.todo-item', 'Watch this video').should('not.exist');
   });
-});
-after(function () {
-  if (taskId) {
-    cy.request({
-      method: 'DELETE',
-      url: `http://localhost:5000/tasks/byid/${taskId}`,
-      failOnStatusCode: false
-    });
-  }
-});
-
-// Second after hook - Delete user after tasks are cleaned up
-after(function () {
-  if (uid) {
-    cy.request({
-      method: 'DELETE',
-      url: `http://localhost:5000/users/${uid}`,
-      failOnStatusCode: false
-    });
-  }
-});
-  
 });
