@@ -29,19 +29,8 @@ describe('Logging into the system', () => {
             },
             failOnStatusCode: false
           }).then((taskResponse) => {
-            taskId = taskResponse.body_id;
+            taskId = taskResponse.body[0]._id.$oid;
             console.log('Task created with ID:', taskId);
-            cy.visit('http://localhost:3000');
-          cy.contains('div', 'Email Address')
-            .find('input[type=text]')
-            .type(email);
-          cy.get('form').submit();
-
-          // click into created task
-          cy.get('.container-element').first().within(() => {
-            cy.get('.title-overlay').should('contain', 'new task');
-            cy.get('a').click();
-          });
           });
 
           // login and create task
@@ -73,6 +62,13 @@ describe('Logging into the system', () => {
 });
 
 
+it('should disable the Add button when input is empty', () => {
+  cy.get('form.inline-form').within(() => {
+    cy.get('input[type="text"]').clear({force: true});
+    cy.get('input[type="submit"]').should('be.disabled');
+  });
+});
+
   it('should toggle a todo', () => {
   cy.contains('.todo-item', 'Dont watch this video').within(() => {
     cy.get('.checker')
@@ -81,6 +77,14 @@ describe('Logging into the system', () => {
 
     // Re-query the element after click to check updated class
     cy.get('.checker').should('have.class', 'checked');
+
+    cy.get('.checker')
+      .should('have.class', 'checked')
+      .click();
+
+    cy.get('.checker')
+      .should('have.class', 'unchecked');
+      
   });
 });
 
