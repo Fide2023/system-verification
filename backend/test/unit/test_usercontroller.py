@@ -50,3 +50,5 @@ class TestGetUserByEmail:
         controller = UserController(dao=mockedDAO)
         with pytest.raises(Exception, match="Database error"):
             controller.get_user_by_email(email)
+
+# *New comment - for pr generation
