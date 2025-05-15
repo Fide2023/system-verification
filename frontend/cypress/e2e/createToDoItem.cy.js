@@ -66,7 +66,7 @@ describe('create task after login', () => {
     });
   });
 
-  // should toogle and untoggle a todo
+  // should toogle a todo
   it('should toggle a todo', () => {
     cy.contains('.todo-item', 'Dont watch this video').within(() => {
       cy.get('.checker')
@@ -74,7 +74,12 @@ describe('create task after login', () => {
         .click();
 
       cy.get('.checker').should('have.class', 'checked');
+    });
+  });
 
+  // should untoggle a toggled todo
+  it ('should untoggle a todo', () => {
+    cy.contains('.todo-item', 'Dont watch this video').within(() => {
       cy.get('.checker')
         .should('have.class', 'checked')
         .click();
