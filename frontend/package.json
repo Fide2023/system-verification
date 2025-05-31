@@ -37,6 +37,7 @@
     ]
   },
   "devDependencies": {
+    "@types/cypress": "^0.1.6",
     "cypress": "^12.17.4"
   }
 }
