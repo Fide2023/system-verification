@@ -60,6 +60,12 @@ describe('Create Todo Item', () => {
       .should('contain', todoText)
      
   });
+  it('should disable the Add button when input is empty', () => {
+    cy.get('form.inline-form').within(() => {
+      cy.get('input[type="text"]').clear({ force: true });
+      cy.get('input[type="submit"]').should('be.disabled');
+    });
+  });
  
   after(() => {
     // Cleanup

@@ -111,6 +111,58 @@ describe('Toggle Todo Item', () => {
       expect(response.body.done).to.be.true;
     });
   });
+ it('should toggle todo from checked to unchecked via backend', () => {
+    // First toggle to checked state
+    cy.request({
+      method: 'PUT',
+      url: `http://localhost:5000/todos/byid/${todoId}`,
+      form: true,
+      body: {
+        data: JSON.stringify({'$set': {'done': true}})
+      }
+    });
+
+    // Verify initial checked state
+    cy.request({
+      method: 'GET',
+      url: `http://localhost:5000/todos/byid/${todoId}`
+    }).then((response) => {
+      expect(response.body.done).to.be.true;
+    });
+
+    // Toggle to unchecked via backend API
+    cy.request({
+      method: 'PUT',
+      url: `http://localhost:5000/todos/byid/${todoId}`,
+      form: true,
+      body: {
+        data: JSON.stringify({'$set': {'done': false}})
+      }
+    });
+
+    // Verify UI reflects the change
+    cy.contains('.todo-item', todoDescription)
+      .find('.checker')
+      .should('not.have.class', 'checked');
+
+    // Verify backend state updated
+    cy.request({
+      method: 'GET',
+      url: `http://localhost:5000/todos/byid/${todoId}`
+    }).then((response) => {
+      expect(response.body.done).to.be.false;
+    });
+  });
+
+    // Verify UI reflects the change
+    // cy.contains('.todo-item', todoDescription)
+    //   .find('.checker')
+    //   .should('not.have.class', 'checked');
+
+    // Verify backend state updated
+    
+  
+
 
   after(() => {
     // Cleanup in correct order

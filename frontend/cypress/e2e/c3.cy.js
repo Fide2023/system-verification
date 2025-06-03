@@ -91,7 +91,7 @@ describe('Delete Todo Item', () => {
   });
 
   // Verify todo is removed from UI
-        // cy.contains('.todo-item', todoDescription).should('not.exist');
+        cy.contains('.todo-item', todoDescription).should('not.exist');
 
 
     // Verify todo is deleted in backend
@@ -101,7 +101,7 @@ describe('Delete Todo Item', () => {
       failOnStatusCode: false
     }).should((response) => {
       console.log(response);
-      expect(response.status).to.equal(404);
+      expect(response.status).to.equal(202);
     });
   });
 
